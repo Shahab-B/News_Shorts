@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-def summarize_article(text: str, style: str = "short") -> str:
+def summarize_article(text: str, style: str = "short, chronological,") -> str:
     prompt = f"Summarize the following news article in a {style} and informative tone:\n\n{text}"
     
     response = client.chat.completions.create(

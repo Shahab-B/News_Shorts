@@ -7,8 +7,8 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def generate_script(summary: str, format: str = "short YouTube-style video") -> str:
     prompt = (
-        f"Turn the following polished summary into a {format} script. Include a strong hook, "
-        "narration, and any scene suggestions if relevant:\n\n" + summary
+        f"Turn the following polished summary into a {format} script. Guiding the user through the events that transpired. Include a strong hook, "
+        "narration, and scene suggestions for a video to coincide alongside the narration.:\n\n" + summary # Multiple scene descriptions each of a single event and have an associated narration segment
     )
 
     response = client.chat.completions.create(
