@@ -1,7 +1,7 @@
-import re
-from openai import OpenAI
 import os
+import re
 from dotenv import load_dotenv
+from openai import OpenAI
 
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -23,46 +23,13 @@ def validate_scene_structure(script: str):
         return "Warning: " + " ".join(issues)
     return "Pass: Script format appears valid."
 
-def check_descriptor_leaks(script: str) -> list[str]:
-    """
-    Checks for name leaks or descriptor + name mixes in Scene Descriptions.
-    Extracts all person names and flags improper reuse.
-    """
-    persons = extract_person_names(script)
-    descriptors = {name: generate_descriptor(name) for name in persons}
-    lines = script.splitlines()
-    issues = []
-
-    for i, line in enumerate(lines):
-        if not line.strip().startswith("Scene Description:"):
-            continue
-
-        for full_name in persons:
-            descriptor = descriptors[full_name]
-            name_parts = full_name.split()
-            first_name, last_name = name_parts[0], name_parts[-1]
-
-            # Leak 1: full name appears after intro
-            if re.search(rf"\b{re.escape(full_name)}\b", line):
-                issues.append(f"Line {i+1}: Full name used in Scene Description after intro → {line.strip()}")
-
-            # Leak 2: last or first name alone
-            elif re.search(rf"\b({re.escape(first_name)}|{re.escape(last_name)})\b", line):
-                issues.append(f"Line {i+1}: Partial name used in Scene Description → {line.strip()}")
-
-            # Leak 3: descriptor + name combo
-            elif re.search(rf"{re.escape(descriptor)}\s*,?\s*({re.escape(first_name)}|{re.escape(last_name)}|{re.escape(full_name)})", line):
-                issues.append(f"Line {i+1}: Descriptor+name mix → {line.strip()}")
-
-    return issues
-
 def extract_person_names(text: str) -> list[str]:
     """
-    Uses GPT to extract all full names of people mentioned in the input text.
+    Uses GPT to extract full names of people from input text.
     """
     prompt = (
-        "Extract all full names of people mentioned in the following text. "
-        "Return only names of people in a list format, without additional comments:\n\n"
+        "Extract the full names of all real or fictional people mentioned in the following text. "
+        "Do not include places, organizations, or titles. Just list the names:\n\n"
         f"{text.strip()}"
     )
     response = client.chat.completions.create(
@@ -72,19 +39,31 @@ def extract_person_names(text: str) -> list[str]:
     names = response.choices[0].message.content.strip().splitlines()
     return [name.strip("-• ") for name in names if name.strip()]
 
+def generate_descriptor(name: str) -> str:
+    """
+    Generates an ambiguous visual descriptor for a person using GPT.
+    """
+    prompt = (
+        f"Create a consistent and ambiguous visual character descriptor for {name} "
+        "suitable for visual storytelling. Avoid real-world identity references or surnames. "
+        "For example: 'a young man with dark hair and a somber expression'."
+    )
+    response = client.chat.completions.create(
+        model=model,
+        messages=[{"role": "user", "content": prompt}]
+    )
+    return response.choices[0].message.content.strip()
+
 def fix_descriptor_name_pairings(script: str, descriptor: str, name: str) -> str:
     """
-    Removes name pairings like 'descriptor, Name' or 'Name, descriptor' in scene descriptions.
-    Keeps only the descriptor for consistency with visual generation.
+    Cleans up scene description lines like 'descriptor, Name' or 'Name, descriptor',
+    leaving just the descriptor.
     """
     lines = script.splitlines()
     fixed_lines = []
 
-    full_name = name
     last_name = name.split()[-1]
     first_name = name.split()[0]
-
-    # Regex to match any line starting with "Scene Description:"
     in_scene = False
 
     for line in lines:
@@ -94,14 +73,14 @@ def fix_descriptor_name_pairings(script: str, descriptor: str, name: str) -> str
             in_scene = False
 
         if in_scene:
-            # Remove ", Name" following descriptor
+            # Descriptor, Name
             line = re.sub(
-                rf"({re.escape(descriptor)})\s*,?\s*({re.escape(first_name)}\s+)?{re.escape(last_name)}",
+                rf"({re.escape(descriptor)}\s*,?\s*)({re.escape(first_name)}\s+)?{re.escape(last_name)}",
                 r"\1",
                 line,
                 flags=re.IGNORECASE,
             )
-            # Remove "Name, descriptor"
+            # Name, Descriptor
             line = re.sub(
                 rf"({re.escape(first_name)}\s+)?{re.escape(last_name)}\s*,?\s*{re.escape(descriptor)}",
                 descriptor,
@@ -112,63 +91,66 @@ def fix_descriptor_name_pairings(script: str, descriptor: str, name: str) -> str
 
     return "\n".join(fixed_lines)
 
-def generate_descriptor(name: str) -> str:
-    """
-    Use GPT to generate a consistent but ambiguous visual descriptor for a person.
-    """
-    prompt = (
-        f"Create a visually descriptive but ambiguous character descriptor for {name}. "
-        "Avoid specific references to real-world identity or actions. Use a tone suitable "
-        "for visual storytelling (e.g., 'a person named X with...')."
-    )
-    response = client.chat.completions.create(
-        model=model,
-        messages=[{"role": "user", "content": prompt}]
-    )
-    return response.choices[0].message.content.strip()
-
-
 def auto_replace_name_leaks(script: str) -> str:
     """
-    Replaces full names and last names in Scene Descriptions only after their first mention.
-    Descriptors are generated once per person using GPT.
-    Cleans up combos like "the young man, Wess Roley" → just the descriptor.
+    Replaces all person name mentions in Scene Descriptions with their descriptors,
+    preserving narration as-is.
     """
-    persons = extract_person_names(script)
-    descriptors = {name: generate_descriptor(name) for name in persons}
+    full_names = extract_person_names(script)
+    descriptor_map = {name: generate_descriptor(name) for name in full_names}
 
-    seen = set()
     lines = script.splitlines()
     updated_lines = []
 
+    in_scene = False
     for line in lines:
-        updated_line = line
+        if line.strip().startswith("Scene Description:"):
+            in_scene = True
+        elif line.strip().startswith("Narration:"):
+            in_scene = False
 
-        for full_name in persons:
-            descriptor = descriptors[full_name]
-            name_parts = full_name.split()
-            first_name = name_parts[0]
-            last_name = name_parts[-1]
-
-            # First mention? Let it through
-            if any(re.search(rf"\b{re.escape(part)}\b", updated_line) for part in [full_name, last_name, first_name]):
-                if full_name not in seen:
-                    seen.add(full_name)
-                    continue  # Allow name on first use
-
-            # Only rewrite inside Scene Descriptions
-            if updated_line.strip().startswith("Scene Description:"):
-                # Remove patterns like: "the descriptor, Wess", "the descriptor, Roley", etc.
-                updated_line = re.sub(
-                    rf"{re.escape(descriptor)}\s*,?\s*(\b{re.escape(full_name)}\b|\b{re.escape(first_name)}\b|\b{re.escape(last_name)}\b)",
-                    descriptor,
-                    updated_line
-                )
-                # Replace standalone full, last, or first name
-                updated_line = re.sub(rf"\b{re.escape(full_name)}\b", descriptor, updated_line)
-                updated_line = re.sub(rf"\b{re.escape(last_name)}\b", descriptor, updated_line)
-                updated_line = re.sub(rf"\b{re.escape(first_name)}\b", descriptor, updated_line)
-
-        updated_lines.append(updated_line)
+        if in_scene:
+            for name, descriptor in descriptor_map.items():
+                last_name = name.split()[-1]
+                if name in line:
+                    line = line.replace(name, descriptor)
+                elif last_name in line:
+                    line = re.sub(rf"\b{last_name}\b", descriptor, line)
+                # Final cleanup of "Name, descriptor" or vice versa
+                line = fix_descriptor_name_pairings(line, descriptor, name)
+        updated_lines.append(line)
 
     return "\n".join(updated_lines)
+
+def check_descriptor_leaks(script: str, names: list[str]) -> list[str]:
+    """
+    Check if any original names are leaking into Scene Descriptions.
+    Returns a list of leaked lines.
+    """
+    leaked = []
+    for line in script.splitlines():
+        if line.strip().startswith("Scene Description:"):
+            for name in names:
+                if name in line:
+                    leaked.append(line)
+    return leaked
+
+
+def auto_fix_descriptor_leaks(script: str, name_descriptor_map: dict[str, str]) -> str:
+    """
+    Replaces any lingering name mentions in Scene Descriptions with their corresponding descriptors.
+    """
+    lines = script.splitlines()
+    fixed_lines = []
+
+    for line in lines:
+        if line.strip().startswith("Scene Description:"):
+            for name, descriptor in name_descriptor_map.items():
+                full = name
+                last = name.split()[-1]
+                line = line.replace(full, descriptor)
+                line = re.sub(rf'\b{re.escape(last)}\b', descriptor, line)
+        fixed_lines.append(line)
+
+    return "\n".join(fixed_lines)
+
