@@ -1,0 +1,7 @@
+"""
+Task: {goal}
+
+Summarize the following article:
+
+{input}
+"""

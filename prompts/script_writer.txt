@@ -1,0 +1,14 @@
+"""
+Task: {goal}
+
+For each scene block below, output:
+
+Narration:
+[What the narrator says — avoid repeating the art style here.]
+
+Scene Description:
+[Start with: 'In a flat 2D cartoon style with soft pastel colors and simple shapes, ...']
+Include all relevant context from the story needed to understand the scene on its own.
+
+{input}
+"""

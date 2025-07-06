@@ -1,16 +1,21 @@
 from utils.fetch_article import extract_article_text
-from agents.summarizer import summarize_article
-from agents.summary_refiner import polish_text
-from agents.scripter import generate_script
-from agents.script_refiner import polish_script
+from flow_controller import run_pipeline
+from validator.scene_format_checker import check_descriptor_leaks
 
-url = "https://www.bbc.com/news/newsbeat-44124396" #"https://www.nytimes.com/2025/06/30/us/wess-roley-idaho-shooting-suspect.html"  # Example
+url = "https://www.nytimes.com/2025/06/30/us/wess-roley-idaho-shooting-suspect.html"
+
 article_text = extract_article_text(url)
 
-summary = summarize_article(article_text)
-polished_summary = polish_text(summary)
-script = generate_script(polished_summary)
-final_script = polish_script(script)
+if __name__ == "__main__":
+    result = run_pipeline(article_text)
 
-print("\n🎯 Final Output Script:\n")
-print(final_script)
+    print("\n--- Pipeline Output ---\n")
+    print(result)
+
+    print("\n--- Descriptor/Name Leak Check ---")
+    leaks = check_descriptor_leaks(result)
+    if leaks:
+        for leak in leaks:
+            print(f"❌ {leak}")
+    else:
+        print("✅ No descriptor/name leaks detected in Scene Descriptions.")
