@@ -1,6 +1,4 @@
 """
-Task: {goal}
-
 You are reviewing a structured video script that contains multiple scene blocks. Each scene block is formatted like this:
 
 Narration:

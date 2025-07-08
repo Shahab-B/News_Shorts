@@ -1,6 +1,4 @@
 """
-Task: {goal}
-
 You are improving a structured script based on critic feedback. The script consists of distinct scene blocks, each with:
 
 Narration:

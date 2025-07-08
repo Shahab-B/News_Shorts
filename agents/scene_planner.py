@@ -21,3 +21,10 @@ scene_planner = RoleAgent(
     model=model,
     memory_file="memory/scene_planner.json"
 )
+
+# "Polish the following YouTube Shorts script scene. Do not change the events or overall structure.\n\n"
+#         "Keep these constraints:\n"
+#         "- Keep the same narration and scene description format\n"
+#         "- Enhance clarity, pacing, and emotional tone\n"
+#         "- Do not add new characters, locations, or plot points\n"
+#         "- Under 60 seconds of content"
