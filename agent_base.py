@@ -37,14 +37,28 @@ class RoleAgent:
 
         load_dotenv()
         client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        messages = []
 
-        prompt = prompt_template.format(goal=self.goal, input=input_text)
+        # Add memory as assistant messages for better context
         if use_memory and self.memory:
-            prompt = self.summarize_memory() + "\n\n" + prompt
+            messages.append({
+                "role": "assistant",
+                "content": "### Prior Work Reference (Memory):\n" + "\n".join(self.memory[-5:])
+            })
+
+        # Agent-specific system goal
+        messages.insert(0, {
+            "role": "system",
+            "content": f"You are the {self.name}. {self.goal}"
+        })
+
+        # Current user instruction
+        prompt = prompt_template.format(input=input_text)
+        messages.append({"role": "user", "content": prompt})
 
         response = client.chat.completions.create(
             model=self.model,
-            messages=[{"role": "user", "content": prompt}]
+            messages=messages
         )
         output = response.choices[0].message.content.strip()
         self.memory.append(output)

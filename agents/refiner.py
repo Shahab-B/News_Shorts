@@ -10,7 +10,13 @@ model = os.getenv("GPT_MODEL")
 
 refiner = RoleAgent(
     name="Refiner",
-    goal="Improve the original script using the critic's feedback. Do not deviate from the story.",
+    goal=(
+        "You are a script refiner. Improve the original script using the provided critic feedback. "
+        "Do not alter the story’s facts or change the scene structure. "
+        "Focus only on style, clarity, tone, and emotional resonance. "
+        "Ensure consistent use of descriptors, visual clarity in scene descriptions, and a strong narrative voice. "
+        "Use memory to retain consistency with prior refinements if available."
+    ),
     model=model,
     memory_file="memory/refiner.json"
 )

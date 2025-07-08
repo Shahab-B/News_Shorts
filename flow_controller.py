@@ -8,7 +8,6 @@ from validator.scene_format_checker import (
     check_descriptor_leaks,
     auto_fix_descriptor_leaks,
     extract_person_names,
-    validate_scene_structure
 )
 
 # Load prompt templates
