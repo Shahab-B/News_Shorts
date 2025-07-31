@@ -1,17 +1,15 @@
-# agents/summarizer.py
+from agent_base import RoleAgent
 from openai import OpenAI
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+model = os.getenv("GPT_MODEL")
 
-def summarize_article(text: str, style: str = "short, chronological,") -> str:
-    prompt = f"Summarize the following news article in a {style} and informative tone:\n\n{text}"
-    
-    response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": prompt}]
-    )
-
-    return response.choices[0].message.content.strip()
+summarizer = RoleAgent(
+    name="Summarizer",
+    goal=("You are a summarizer. Your job is to write concise, chronologically structured summaries in an informative tone. Refer to prior summaries for stylistic consistency when applicable."),
+    model=model,
+    memory_file="memory/summarizer.json"
+)

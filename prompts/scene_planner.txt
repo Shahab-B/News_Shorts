@@ -1,0 +1,5 @@
+"""
+Break down the following summary into a list of short, atomic scene descriptions. Each scene should contain only one main action or event.
+
+{input}
+"""

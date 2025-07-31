@@ -1,0 +1,22 @@
+"""
+You are improving a structured script based on critic feedback. The script consists of distinct scene blocks, each with:
+
+Narration:
+[What the narrator says]
+
+Scene Description:
+[What the viewer sees]
+
+Instructions:
+- Improve narration and scene descriptions based on the feedback
+- DO NOT merge scenes together
+- Maintain the original structure: one Narration + one Scene Description per block
+- Keep all scenes visually and emotionally coherent on their own
+
+Script:
+{input[script]}
+
+Feedback:
+{input[feedback]}
+
+"""

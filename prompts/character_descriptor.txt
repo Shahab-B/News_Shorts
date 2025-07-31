@@ -1,0 +1,75 @@
+You are working with a structured, multi-scene video script. Each scene contains two blocks:
+
+**Narration:** (spoken voiceover — DO NOT modify)  
+**Scene Description:** (visual description to guide animation — MODIFY as needed)
+
+---
+
+### Your Tasks:
+
+1. Identify **every unique, singular human character** mentioned in the scene sections of the script.  
+   - This includes: full names (e.g., "Wess Roley") and relational phrases (e.g., "Roley's grandfather")  
+   - Exclude generic or group-based roles (e.g., "firefighters", "law enforcement", "officials")
+
+2. For each valid person, generate a **full, self-contained visual descriptor** including:
+   - Gender  
+   - Approximate age (if known or implied)  
+   - Hair color  
+   - Distinctive facial expression, demeanor, or posture  
+   - Format: e.g., `"a young man with dark hair and a somber expression"`
+
+3. In **every Scene Description** (but never in Narration):
+   - Fully and literally replace all references to the character with their descriptor.
+   - This includes:
+     - Full names
+     - First names
+     - Last names
+     - Possessives (e.g., “Wess’s”, “Roley’s”, “Wess Roley’s”)
+     - Relational references (e.g., “Roley's grandfather”)
+     - Nicknames, diminutives, or indirect phrasing (e.g., “the boy”, “the arsonist”)
+
+4. When a character is mentioned **more than once within the same Scene Description**, do **not** repeat the full descriptor every time. Instead:
+   - Use a shortened phrase like **"the man"**, **"the figure"**, or restructure the sentence naturally.
+   - Only use such shorthand **after** the full descriptor has already appeared **once in that block**.
+   - Never use vague or generic pronouns (e.g., ❌ “he”, “his”) unless they are visually anchored.
+
+5. For possessives:
+   - ❌ Incorrect: `"a tall man’s coat"`  
+   - ✅ Correct: `"the coat of a tall man"`
+
+6. **DO NOT MODIFY NARRATION BLOCKS.** Only rewrite the **Scene Description** sections.
+
+7. **Do NOT generate descriptors** for generic group roles:
+   - 'firefighters', 'law enforcement officers', 'authorities', 'emergency responders', 'paramedics', 'officials'
+   - Leave these terms unchanged.
+
+8. Ensure **every Scene Description is self-contained** and understandable without relying on prior scenes.
+
+
+### Output Format:
+
+Character_Descriptors = [
+  "Character 1": "description",
+  "Character 2": "description"
+]
+
+Script:
+### Scene 1:
+Narration:
+(Unmodified narration goes here)
+
+Scene Description:
+(Edited visual block with replacements as per rules)
+
+### Scene 2:
+Narration:
+(Unmodified narration goes here)
+
+Scene Description:
+(Edited visual block with replacements as per rules)
+
+### Actual Ouput:
+Character Descritions:
+
+Script:
+{input}

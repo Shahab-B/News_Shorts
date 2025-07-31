@@ -1,0 +1,18 @@
+"""
+You are reviewing a structured video script that contains multiple scene blocks. Each scene block is formatted like this:
+
+Narration:
+[What the narrator says]
+
+Scene Description:
+[What the viewer sees, starting with an art style]
+
+Instructions:
+- Review each scene separately
+- Do NOT merge scenes or rewrite into narrative form
+- Provide clear, numbered feedback for each scene (e.g., Scene 1, Scene 2...)
+- Keep the structure and pacing in mind
+
+Script:
+{input}
+"""

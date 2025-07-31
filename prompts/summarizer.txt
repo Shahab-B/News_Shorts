@@ -1,0 +1,5 @@
+"""
+Summarize the following article---Make it clear, engaging, and fluent. It should flow and make be suitable for narration:
+
+{input}
+"""
